@@ -1,0 +1,101 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>(Almost) Safe Serializatioin</title>
+  <!-- <link rel="icon" href="/images/favicon.png"> -->
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/rust.min.js"></script>
+</head>
+
+<body>
+    <h1>(Almost) Safe Serialization)</h1>
+
+    <p>
+        Serialization and deserialization have different implications when it comes to type safety. Any data that comes into a program from the outside can't be trusted to be coherent, and any serialized logic can't be trusted to be producing something that actually represents the original data. There are better and worse ways to go about dealing with serialization, and I'll explore a few here. Of course, I'm assuming that the program doing the (de)serialization is using a language with strong safety guarantees like Rust.
+    </p>
+    <p>
+        Serialization and deserialization are type-unsafe in different, asymmetric ways:
+    </p>
+
+    <h2>Fallibility</h2>
+    <p>
+        Serialization is usually infallible (modulo IO issues), since a struct has all data that it requires to produce its serialized representation. Deserialization, on the other hand, is fallible, since it might encounter bad or incomplete data coming from program input.
+    </p>
+
+    <h2>Safety</h2>
+    <p>
+        Deserialization is inherently type-safe if we assume that a struct can only be created by calling a constructor with valid arguments. This naturally leads to deserialization code that tries (and potentially safely fails) to produce all required constructor arguments out of the unsafe input data. Serialization is inherently unsafe, as there is no way a compiler can tell that serialization code is dumping all relevant fields.
+    </p>
+
+    <p>
+        (de)serialization strategies that rely on runtime type information (e.g. Java's or Pyton's reflection capabilities) are clearly unsafe; If the serialization logic relies on runtime type information then it can't be verified by the compiler, which can lead to code that fails at runtime when trying to serialize a value that is either not serializable (e.g.: pointers, locks)  or  not meant to be serialized (e.g.: caches, derived values, internal values). A better, safer strategy is that of code generation, like what is done by the “serde” crate in Rust;  for every unannotated field in a struct, serde will generate code that produces its serialized version. The fact that it generates actual Rust code gives it an extra level of safety since the compiler gets to see the serialization code, flagging attempts to serialize unserializable values at compile time.
+    </p>
+    <p>
+        This strategy is pretty solid, but there is still room for unsafety in the form of serialized data being insufficient for deserialization; it's still possible to generate serialization code that serializes a struct into something that can never be deserialized due to e.g. not serializing a required field by annotating it with #[serde(skip_serializing)], and once again the compiler can't help us there, since it doesn't really know that the output of the serialization method is supposed to be the input of the deserialization function.
+    </p>
+
+    <h2>A mitigating strategy - using an intermediate “Message” type</h2>
+    <p>
+        Instead of serializing directly to the output format (e.g. raw bytes or a JSON string), one could first convert a data struct into an intermediate “message” type, specific to every struct that needs (de)serialization. So, for example, a Person struct would be converted to a PersonMessage struct, and only the PersonMessage struct would then be serializable to e.g. JSON. Then, by implementing methods like
+    </p>
+
+    <pre></pre><code class="language-rust">PersonMessage::from(person: Person) -> PersonMessage</code></pre>
+    and
+    <pre></pre><code class="language-rust">Person::from(message: &PersonMessage) -> Person</code></pre>
+
+    <p>
+        we ensure serialization and deserialization are tied together; If ever PersonMessage becomes insufficient for deserialization, the compiler will flag that insufficiency in the Person::from_message constructor method.
+    </p>
+    <p>
+        It is still necessary to manually ensure that ALL fields of the *Message types are being serialized, but I find that to be easier to enforce by policy since those types only exist for serialization purposes and will never have fields that are not meant to be serialized (e.g. private interval values). Specifically for serde, this can be conveniently achieved by annotating structs like so:
+    </p>
+
+    <pre><code id="serialization-with-message-types" class="language-rust"></code></pre>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => document.getElementById("serialization-with-message-types").textContent = `
+            use serde::{Serialize, Deserialize};
+
+            #[derive(Serialize, Deserialize)]
+            pub struct PersonMessage{
+                name: String,
+                age: u8,
+            }
+            impl From<Person> for PersonMessage{
+                fn from(value: Person) -> Self {
+                    return Self{name: value.name, age: value.age}
+                }
+            }
+
+
+            #[derive(Serialize, Deserialize, Clone)]
+            #[serde(into = "PersonMessage")]
+            #[serde(from = "PersonMessage")]
+            pub struct Person{
+                name: String,
+                age: u8,
+            }
+
+
+            impl From<PersonMessage> for Person{
+                fn from(value: PersonMessage) -> Self {
+                    return Self{name: value.name, age: value.age}
+                }
+            }
+        `.split("\n").map(l => l.replace(/^            /, '')).join("\n"))
+    </script>
+
+    <p>
+        This is obviously very verbose, and it's likely that some macros could help keep the boilerplate down. The logic that converts between Person and PersonMessage has to be written manually, even if the logic that actually serializes PersonMessage can be auto-generated. This isn't necessarily bad, though, as often some validation has to be done on the message after deserialization. For example, maybe the logic that converts PersonMessage to Person would check that person_message.age < 130.
+    </p>
+    <p>
+        So if you're obsessing about serialization correctness, I can recommend “Message” types as pretty decent solution =)
+    </p>
+
+    <script>hljs.highlightAll();</script>
+</body>
+</html>
