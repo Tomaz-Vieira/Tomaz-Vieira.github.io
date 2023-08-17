@@ -13,7 +13,7 @@
 </head>
 
 <body>
-    <h1>(Almost) Safe Serialization)</h1>
+    <h1>(Almost) Safe Serialization</h1>
 
     <p>
         Serialization and deserialization have different implications when it comes to type safety. Any data that comes into a program from the outside can't be trusted to be coherent, and any serialized logic can't be trusted to be producing something that actually represents the original data. There are better and worse ways to go about dealing with serialization, and I'll explore a few here. Of course, I'm assuming that the program doing the (de)serialization is using a language with strong safety guarantees like Rust.
