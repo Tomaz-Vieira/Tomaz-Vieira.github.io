@@ -10,6 +10,12 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/rust.min.js"></script>
+
+  <style>
+    code:not(.language-rust){
+        background-color: lightgray;
+    }
+  </style>
 </head>
 
 <body>
@@ -41,18 +47,18 @@
 
     <h2>A mitigating strategy - using an intermediate “Message” type</h2>
     <p>
-        Instead of serializing directly to the output format (e.g. raw bytes or a JSON string), one could first convert a data struct into an intermediate “message” type, specific to every struct that needs (de)serialization. So, for example, a Person struct would be converted to a PersonMessage struct, and only the PersonMessage struct would then be serializable to e.g. JSON. Then, by implementing methods like
+        Instead of serializing directly to the output format (e.g. raw bytes or a JSON string), one could first convert a data struct into an intermediate “message” type, specific to every struct that needs (de)serialization. So, for example, a <code>Person</code> struct would be converted to a <code>PersonMessage</code> struct, and only the <code>PersonMessage</code> struct would then be serializable to e.g. JSON. Then, by implementing methods like
     </p>
 
-    <pre></pre><code class="language-rust">PersonMessage::from(person: Person) -> PersonMessage</code></pre>
-    and
-    <pre></pre><code class="language-rust">Person::from(message: &PersonMessage) -> Person</code></pre>
+    <p><pre></pre><code>PersonMessage::from(person: Person) -> PersonMessage</code></pre></p>
+    <p>and</p>
+    <p><pre></pre><code>Person::from(message: &PersonMessage) -> Person</code></pre></p>
 
     <p>
-        we ensure serialization and deserialization are tied together; If ever PersonMessage becomes insufficient for deserialization, the compiler will flag that insufficiency in the Person::from_message constructor method.
+        we ensure serialization and deserialization are tied together; If ever <code>PersonMessage</code> becomes insufficient for deserialization, the compiler will flag that insufficiency in the <code>Person::from_message</code> constructor method.
     </p>
     <p>
-        It is still necessary to manually ensure that ALL fields of the *Message types are being serialized, but I find that to be easier to enforce by policy since those types only exist for serialization purposes and will never have fields that are not meant to be serialized (e.g. private interval values). Specifically for serde, this can be conveniently achieved by annotating structs like so:
+        It is still necessary to manually ensure that ALL fields of the <code>*Message</code> types are being serialized, but I find that to be easier to enforce by policy since those types only exist for serialization purposes and will never have fields that are not meant to be serialized (e.g. private internal values). Specifically for Rust's serde, this can be conveniently achieved by annotating structs like so:
     </p>
 
     <pre><code id="serialization-with-message-types" class="language-rust"></code></pre>
@@ -73,8 +79,8 @@
 
 
             #[derive(Serialize, Deserialize, Clone)]
-            #[serde(into = "PersonMessage")]
-            #[serde(from = "PersonMessage")]
+            #[serde(into = "PersonMessage")] //convert to PersonMessage, then serialize
+            #[serde(from = "PersonMessage")] //deserialize first into a PersonaMessage, then convert
             pub struct Person{
                 name: String,
                 age: u8,
@@ -90,7 +96,7 @@
     </script>
 
     <p>
-        This is obviously very verbose, and it's likely that some macros could help keep the boilerplate down. The logic that converts between Person and PersonMessage has to be written manually, even if the logic that actually serializes PersonMessage can be auto-generated. This isn't necessarily bad, though, as often some validation has to be done on the message after deserialization. For example, maybe the logic that converts PersonMessage to Person would check that person_message.age < 130.
+        This is obviously very verbose, and it's likely that some macros could help keep the boilerplate down. The logic that converts between <code>Person</code> and <code>PersonMessage</code> has to be written manually, even if the logic that actually serializes <code>PersonMessage</code> can be auto-generated. This isn't necessarily bad, though, as often some validation has to be done on the message after deserialization. For example, maybe the logic that converts <code>PersonMessage</code> to <code>Person</code> would check that <code>person_message.age < 130</code>.
     </p>
     <p>
         So if you're obsessing about serialization correctness, I can recommend “Message” types as pretty decent solution =)
