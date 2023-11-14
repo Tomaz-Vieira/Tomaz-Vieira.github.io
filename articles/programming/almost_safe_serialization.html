@@ -22,7 +22,7 @@
     <h1>(Almost) Safe Serialization</h1>
 
     <p>
-        Serialization and deserialization have different implications when it comes to type safety. Any data that comes into a program from the outside can't be trusted to be coherent, and any serialized logic can't be trusted to be producing something that actually represents the original data. There are better and worse ways to go about dealing with serialization, and I'll explore a few here. Of course, I'm assuming that the program doing the (de)serialization is doing static type checking.
+        Serialization and deserialization have different implications when it comes to type safety. Any data that comes into a program from the outside can't be trusted to be coherent, and any serialization logic can't be trusted to  produce something that actually represents the original data. There are better and worse ways to go about dealing with serialization, and I'll explore a few here. Of course, I'm assuming that the program doing the (de)serialization is doing static type checking.
     </p>
     <p>
         Serialization and deserialization are type-unsafe in different, asymmetric ways:
@@ -35,7 +35,7 @@
 
     <h2>Safety</h2>
     <p>
-        Deserialization is inherently type-safe if we assume that a struct can only be created by calling a constructor with valid arguments. This naturally leads to deserialization code that tries (and potentially safely fails) to produce all required constructor arguments out of the unsafe input data. Serialization is inherently unsafe, as there is no way a compiler can tell that serialization code is dumping all relevant fields.
+        Deserialization is inherently type-safe if we assume that a struct can only be created by calling a constructor with valid arguments. This naturally leads to deserialization code that tries (and potentially safely fails) to produce all required constructor arguments out of the unsafe input data. Serialization is inherently unsafe, as there is no way a compiler can tell that the serialization code is dumping all relevant fields, and that it is doing so in a way that can the be read back properly.
     </p>
 
     <p>
