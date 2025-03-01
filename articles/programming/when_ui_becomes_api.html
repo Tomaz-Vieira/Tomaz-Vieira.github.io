@@ -4,11 +4,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Ramblings</title>
+  <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+  <title>Chasing Programming Wisdom - When UI becomes API</title>
   <!-- <link rel="icon" href="/images/favicon.png"> -->
 </head>
 
 <body>
+    <header>
+        <a href="/index.html" style="text-decoration: none; color: darkslateblue"><h1>Chasing Programming Wisdom</h1></a>
+        <small style="float: right">Ramblings by Tomaz Vieira</small>
+    </header>
     <h1>When UI becomes API</h1>
 
     <p>
@@ -95,7 +100,7 @@
     <p>It's more likely than not that your code will be interacting with other machines as API than directly with humans as UI so I'd say be very clear with what your program needs and very strict with what it will accept. If the word "parse" shows up anywhere, you might have already accidentally ventured into the world of UI.</p>
 
     <h3>P.S.: Greyzone: Configuration Files</h3>
-    <p>I havent' had much time to think deeply about configuration files. On the one hand they feel like API; they will be interpreted by machines, they have special fields in special combinations that produce a valid file and it is easy to mess them up by writing them by hand, which leads to me to think that they should rather be produced by a utility program (serializing a type-safe struct in code) instead of written by hand.</p>
+    <p>I haven't had much time to think deeply about configuration files. On the one hand they feel like API; they will be interpreted by machines, they have special fields in special combinations that produce a valid file and it is easy to mess them up by writing them by hand, which leads me to think that they should rather be produced by a utility program (serializing a type-safe struct in code) instead of written by hand.</p>
     <p>On the other hand, they could be seen as a DSL, meant to be edited multiple times by humans until they find the settings that achieve their goals. Plus, if the config file is always evaluated at load-time and verbose, polite errors are produced by the reading application, then it feels more and more like UI (at least as long as automatic config-file-generation is not part of the picture)</p>
     <p>I'm still leaning towards config files being API rather than UI, but I do see the annoyance of having to fire a specific program every time one wants to modify some configuration.</p>
 
