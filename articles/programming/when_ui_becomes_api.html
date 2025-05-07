@@ -4,17 +4,25 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+  <link rel="stylesheet" href="/style/neat.css">
   <title>Chasing Programming Wisdom - When UI becomes API</title>
-  <!-- <link rel="icon" href="/images/favicon.png"> -->
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/rust.min.js"></script>
 </head>
 
 <body>
-    <header>
-        <a href="/index.html" style="text-decoration: none; color: darkslateblue"><h1>Chasing Programming Wisdom</h1></a>
-        <small style="float: right">Ramblings by Tomaz Vieira</small>
-    </header>
-    <h1>When UI becomes API</h1>
+
+    <div style="">
+        <h1><a href="/index.html" style="text-decoration: none;">Coding Thoughts</a></h1>
+        <p>
+          <small style="">Ramblings by Tomaz Vieira</small>
+        </p>
+        <hr />
+    </div>
+
+    <h2>When UI becomes API</h2>
 
     <p>
         “Things that are made for humans” (UI) and “things that are made for machines” (API) have fundamentally opposite goals and requirements, and yet it is very common for UI to bleed into the world of API. I find that a developer who doesn't often ask themselves “is this for humans or machines?” is at great risk of falling into the trap of mixing them up. This happens most often with software whose users are also developers, making the distinction between the two worlds even harder.
@@ -26,17 +34,17 @@
 
     <ul>
         <li>
-            <h2>
+            <h3>
                 Shell Scripting
-            </h2>
+            </h3>
             <p>
                 Shells are human interfaces to the underlying operating system, therefore made for humans. Still, shell scripting is at the core of many systems today, like the entirety of SysV scripts before SystemD took over... and even SystemD unit files are filled with shell script snippets;
             </p>
         </li>
         <li>
-            <h2>
+            <h3>
                 URLs
-            </h2>
+            </h3>
             <p>
                 Urls are things humans can type into file- and web-browsers. They are composed of readable/printable characters and represent a bunch of fields that are delimited by separators instead of sizes since that is way more manageable by users.
             </p>
@@ -46,23 +54,23 @@
 
         </li>
         <li>
-            <h2>HTML</h2>
+            <h3>HTML</h3>
             <p>HTML is UI. I'm using it right now to produce rich text, writing it manually. It is, afterall, a <em>language</em>, and is therefore pretty ok to type, its evaluation will even do some very human-friendly things, like merging or ignoring whitespace where one would expect.</p>
             <p>Still, my server (a machine) will send this human-friendly file exactly as-is to your browser (another machine), instead of first transforming it into a tree of nodes, and all browsers must be able to parse and interpret these human-friendly strings. Worse still, there is a lot of logic out there automatically producing HTML (PHP, js, JSP, etc), dealing with the usual issues of text production (encoding, escaping, sanitizing), but it's likely that no human will ever read that raw human-friendly HTML.</p>
         </li>
         <li>
-            <h2>SQL</h2>
+            <h3>SQL</h3>
             <p>Like HTML, SQL is a <em>Language</em> to query databases, meant to be written by humans. Humans would then feed those strings into some UI, which would convert it into something more manageable for machines</p>
 
             <p>And also like HTML, it somehow became part of an API, and almost everything that interacts with a database must produce human-readable strings (susceptible to malicious injections, encoding issues, etc).</p>
         </li>
         <li>
-            <h2>Most scripting languages</h2>
+            <h3>Most scripting languages</h3>
             <p>They come with a nifty REPL where you can type your quick and dirty code, without typing information, and immediately execute and see what happens. Ruby will even allow you to call functions without parenthesis, and python once had a very easy-to-type 'print' statement (not function). They are interpreted so you don't have to wait for compilation before you see your code execute.</p>
             <p>All of those characteristics are great in a Shell that is interacting with humans, but create a lot of problems in code that is executing unattended and interacting with other machines.</p>
         </li>
         <li>
-            <h2>Pretty much any text-base format</h2>
+            <h3>Pretty much any text-base format</h3>
             <p>JSON, YAML, XML, HTTP, etc. They all need to be parsed to get to the real values, use separators to delimit fields, can be typed by hand and read by humans and are extremely inneficient.</p>
         </li>
     </ul>

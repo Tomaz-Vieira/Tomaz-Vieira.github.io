@@ -4,28 +4,24 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
-  <title>Chasing Programming Wisdom - (Almost) Safe Serializatioin</title>
-  <!-- <link rel="icon" href="/images/favicon.png"> -->
+  <link rel="stylesheet" href="/style/neat.css">
+  <title>Coding Thoughts - (Almost) Safe Serializatioin</title>
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/rust.min.js"></script>
-
-  <style>
-    code:not(.language-rust){
-        background-color: lightgray;
-    }
-  </style>
 </head>
 
 <body>
-    <header>
-        <a href="/index.html" style="text-decoration: none; color: darkslateblue"><h1>Chasing Programming Wisdom</h1></a>
-        <small style="float: right">Ramblings by Tomaz Vieira</small>
-    </header>
+    <div style="">
+      <h1><a href="/index.html" style="text-decoration: none;">Coding Thoughts</a></h1>
+      <p>
+        <small style="">Ramblings by Tomaz Vieira</small>
+      </p>
+      <hr />
+    </div>
 
-    <h1>(Almost) Safe Serialization</h1>
+    <h2>(Almost) Safe Serialization</h2>
 
     <p>
         Serialization and deserialization have different implications when it comes to type safety. Any data that comes into a program from the outside can't be trusted to be coherent, and any serialization logic can't be trusted to  produce something that actually represents the original data. There are better and worse ways to go about dealing with serialization, and I'll explore a few here. Of course, I'm assuming that the program doing the (de)serialization is doing static type checking.
@@ -34,12 +30,12 @@
         Serialization and deserialization are type-unsafe in different, asymmetric ways:
     </p>
 
-    <h2>Fallibility</h2>
+    <h3>Fallibility</h3>
     <p>
         Serialization is usually infallible (modulo IO issues), since a struct has all data that it requires to produce its serialized representation. Deserialization, on the other hand, is fallible, since it might encounter bad or incomplete data coming from program input.
     </p>
 
-    <h2>Safety</h2>
+    <h3>Safety</h3>
     <p>
         Deserialization is inherently type-safe if we assume that a struct can only be created by calling a constructor with valid arguments. This naturally leads to deserialization code that tries (and potentially safely fails) to produce all required constructor arguments out of the unsafe input data. Serialization is inherently unsafe, as there is no way a compiler can tell that the serialization code is dumping all relevant fields, and that it is doing so in a way that can the be read back properly.
     </p>
@@ -51,14 +47,20 @@
         This strategy is pretty solid, but there is still room for unsafety in the form of serialized data being insufficient for deserialization; it's still possible to generate serialization code that serializes a struct into something that can never be deserialized due to e.g. not serializing a required field by annotating it with #[serde(skip_serializing)], and once again the compiler can't help us there, since it doesn't really know that the output of the serialization method is supposed to be the input of the deserialization function.
     </p>
 
-    <h2>A mitigating strategy - using an intermediate “Message” type</h2>
+    <h3>A mitigating strategy - using an intermediate “Message” type</h3>
     <p>
         Instead of serializing directly to the output format (e.g. raw bytes or a JSON string), one could first convert a data struct into an intermediate “message” type, specific to every struct that needs (de)serialization. So, for example, a <code>Person</code> struct would be converted to a <code>PersonMessage</code> struct, and only the <code>PersonMessage</code> struct would then be serializable to e.g. JSON. Then, by implementing methods like
     </p>
 
-    <p><pre></pre><code>PersonMessage::from(person: Person) -> PersonMessage</code></pre></p>
+    <p>
+        <code>PersonMessage::from(person: Person) -> PersonMessage</code>
+    </p>
+    
     <p>and</p>
-    <p><pre></pre><code>Person::from(message: &PersonMessage) -> Person</code></pre></p>
+
+    <p>
+        <code>Person::from(message: &PersonMessage) -> Person</code>
+    </p>
 
     <p>
         we ensure serialization and deserialization are tied together; If ever <code>PersonMessage</code> becomes insufficient for deserialization, the compiler will flag that insufficiency in the <code>Person::from_message</code> constructor method.
